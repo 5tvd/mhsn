@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>قيود اليومية التفاعلية: منشأة خالد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0D0F13; --surface:#14171D; --surface-2:#191D24; --surface-3:#20252D;
+  --line:#262B34; --line-2:#343B46;
+  --text:#E9EBEF; --text-2:#B7BECA; --muted:#8C95A4;
+  --debit:#3CCBF4; --debit-ink:#A5E9FB; --debit-soft:rgba(60,203,244,.07); --debit-tint:rgba(60,203,244,.13); --debit-line:rgba(60,203,244,.5);
+  --credit:#B18CFF; --credit-ink:#D8C7FF; --credit-soft:rgba(177,140,255,.07); --credit-tint:rgba(177,140,255,.13); --credit-line:rgba(177,140,255,.5);
+  --pos:#4ADE9A; --neg:#FF8A99;
+  --r-lg:16px; --r-md:10px;
+  --font:'IBM Plex Sans Arabic','Noto Sans Arabic','Segoe UI',Tahoma,sans-serif;
+  --font-d:'Readex Pro','IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0D0F13; } }
+:root[data-theme="dark"]{ --bg:#0D0F13; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); background:var(--bg); }
+*,*::before,*::after{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
+body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--font); font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+button,input{ font:inherit; color:inherit; }
+:focus-visible{ outline:2px solid #E9EBEF; outline-offset:2px; }
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.n{ unicode-bidi:isolate; font-variant-numeric:tabular-nums; }
+.pos{ color:var(--pos); } .neg{ color:var(--neg); } .zero{ color:var(--muted); }
+svg{ flex:none; }
+
+.wrap{ max-width:1180px; margin:0 auto; padding:32px 24px 56px; }
+
+/* header */
+.top{ display:flex; justify-content:space-between; align-items:flex-end; gap:20px 32px; flex-wrap:wrap; padding-bottom:22px; border-bottom:1px solid var(--line); }
+.meta{ margin:0; font-size:13px; color:var(--muted); }
+h1{ margin:6px 0 0; font-family:var(--font-d); font-weight:600; font-size:clamp(26px,3.2vw,36px); line-height:1.3; text-wrap:balance; }
+.lede{ margin:8px 0 0; max-width:62ch; color:var(--text-2); text-wrap:pretty; }
+.who{ display:flex; flex-direction:column; gap:2px; padding:10px 16px; border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface); font-size:14px; }
+.who .name{ font-weight:600; }
+.who .sec{ color:var(--muted); font-size:13px; }
+
+/* equation */
+.eq-panel{ position:relative; overflow:hidden; margin-top:24px; padding:22px 24px 20px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); }
+.eq-panel::before{ content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(520px 180px at 88% -30%, rgba(60,203,244,.10), rgba(60,203,244,0) 70%),
+             radial-gradient(520px 180px at 8% 130%, rgba(177,140,255,.10), rgba(177,140,255,0) 70%); }
+.eq-panel > *{ position:relative; }
+.eq-head{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.eq-title{ margin:0; font-family:var(--font-d); font-weight:500; font-size:16px; color:var(--text); }
+.eq-title .when{ color:var(--muted); font-family:var(--font); font-weight:400; font-size:14px; margin-right:6px; }
+.balanced{ display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; font-size:13px; color:var(--pos); background:rgba(74,222,154,.08); border:1px solid rgba(74,222,154,.32); }
+.eq{ display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr); gap:12px; align-items:stretch; margin-top:16px; }
+.term{ display:flex; flex-direction:column; gap:2px; padding:14px 16px; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-md); }
+.term .lbl{ font-size:13px; color:var(--text-2); }
+.term .val-row{ display:flex; align-items:baseline; gap:8px; }
+.term .val{ font-family:var(--font-d); font-weight:600; font-size:clamp(24px,2.8vw,32px); line-height:1.25; }
+.term .unit{ font-size:13px; color:var(--muted); }
+.term .delta{ font-size:13px; color:var(--muted); }
+.op{ align-self:center; font-family:var(--font-d); font-size:28px; color:var(--muted); }
+
+.timeline{ display:flex; align-items:center; gap:12px 16px; flex-wrap:wrap; margin-top:18px; }
+.steps-scroll{ flex:1 1 440px; overflow-x:auto; }
+.steps{ display:flex; gap:2px; min-width:max-content; }
+.step{ width:44px; height:44px; padding:0; border:0; background:transparent; display:grid; place-items:center; cursor:pointer; border-radius:12px; }
+.step span{ width:30px; height:30px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--line-2); background:var(--surface-2); color:var(--muted); font:600 13px var(--font-d); font-variant-numeric:tabular-nums; transition:background-color .2s, border-color .2s, color .2s, box-shadow .2s; }
+.step:hover span{ border-color:#4A5261; color:var(--text); }
+.step.done span{ border-color:#4A5261; color:var(--text-2); background:var(--surface-3); }
+.step.current span{ background:var(--text); border-color:var(--text); color:var(--bg); box-shadow:0 0 0 4px rgba(233,235,239,.12), 0 0 18px rgba(233,235,239,.28); }
+.tl-actions{ display:flex; gap:8px; }
+
+.btn{ min-height:44px; padding:0 16px; display:inline-flex; align-items:center; gap:8px; border-radius:var(--r-md); border:1px solid var(--line-2); background:var(--surface-2); color:var(--text); font-size:14px; font-weight:500; cursor:pointer; transition:background-color .2s, border-color .2s; }
+.btn:hover{ background:var(--surface-3); border-color:#454D5A; }
+.btn.ghost{ background:transparent; }
+
+.rules{ display:flex; flex-wrap:wrap; gap:8px 24px; margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:13.5px; color:var(--text-2); }
+.rules p{ margin:0; display:flex; align-items:center; gap:8px; }
+.rules .dot{ width:8px; height:8px; border-radius:50%; }
+.rules .d .dot{ background:var(--debit); box-shadow:0 0 10px var(--debit); }
+.rules .c .dot{ background:var(--credit); box-shadow:0 0 10px var(--credit); }
+.rules b{ font-weight:600; }
+.rules .d b{ color:var(--debit-ink); } .rules .c b{ color:var(--credit-ink); }
+.rules .note{ color:var(--muted); }
+
+/* toolbar */
+.toolbar{ position:sticky; top:env(safe-area-inset-top,0px); z-index:20; margin-top:20px; padding:12px 0; display:flex; flex-direction:column; gap:10px; background:rgba(13,15,19,.9); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+.tb-row{ display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; }
+.search{ position:relative; flex:1 1 280px; }
+.search input{ width:100%; min-height:44px; padding:0 42px 0 44px; border-radius:var(--r-md); border:1px solid var(--line-2); background:var(--surface); font-size:15px; transition:border-color .2s; }
+.search input::placeholder{ color:var(--muted); }
+.search input:hover{ border-color:#454D5A; }
+.search input:focus{ outline:none; border-color:#8C95A4; }
+.search input:focus-visible{ outline:2px solid #E9EBEF; outline-offset:1px; }
+.search input::-webkit-search-cancel-button{ -webkit-appearance:none; appearance:none; display:none; }
+.search .i-search{ position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+.search .clear{ position:absolute; left:0; top:0; width:44px; height:44px; display:grid; place-items:center; border:0; background:transparent; color:var(--muted); cursor:pointer; border-radius:var(--r-md); }
+.search .clear:hover{ color:var(--text); }
+
+.seg{ display:flex; gap:4px; padding:3px; border:1px solid var(--line-2); border-radius:12px; background:var(--surface); }
+.seg button{ min-height:40px; padding:0 14px; display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; background:transparent; color:var(--text-2); font-size:14px; font-weight:500; cursor:pointer; transition:background-color .2s, color .2s; }
+.seg button:hover{ color:var(--text); }
+.seg button[aria-pressed="true"]{ background:var(--surface-3); color:var(--text); box-shadow:inset 0 0 0 1px var(--line-2); }
+
+.switch{ min-height:44px; padding:0 4px; display:inline-flex; align-items:center; gap:10px; border:0; background:transparent; color:var(--text-2); font-size:14px; font-weight:500; cursor:pointer; }
+.switch:hover{ color:var(--text); }
+.switch .track{ position:relative; width:42px; height:24px; border-radius:999px; background:var(--surface-3); border:1px solid var(--line-2); transition:background-color .2s, border-color .2s; }
+.switch .thumb{ position:absolute; top:3px; right:3px; width:16px; height:16px; border-radius:50%; background:var(--muted); transition:transform .2s, background-color .2s; }
+.switch[aria-checked="true"]{ color:var(--text); }
+.switch[aria-checked="true"] .track{ background:var(--text); border-color:var(--text); }
+.switch[aria-checked="true"] .thumb{ transform:translateX(-18px); background:var(--bg); }
+
+.chips{ display:flex; gap:6px; flex-wrap:wrap; flex:1 1 auto; }
+.chip{ min-height:44px; padding:0 14px; display:inline-flex; align-items:center; gap:8px; border-radius:999px; border:1px solid var(--line-2); background:transparent; color:var(--text-2); font-size:14px; cursor:pointer; transition:background-color .2s, border-color .2s, color .2s; }
+.chip:hover{ color:var(--text); border-color:#454D5A; }
+.chip .c{ font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.chip[aria-pressed="true"]{ background:var(--text); border-color:var(--text); color:var(--bg); }
+.chip[aria-pressed="true"] .c{ color:#4B5260; }
+.count{ margin:0; font-size:13px; color:var(--muted); white-space:nowrap; }
+
+/* cards */
+.results{ margin-top:20px; }
+.cards{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.card{ scroll-margin-top:170px; display:flex; flex-direction:column; gap:14px; padding:18px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); cursor:pointer; transition:border-color .2s, box-shadow .3s, opacity .3s; }
+.card:hover{ border-color:var(--line-2); }
+.cards.has-selection .card:not(.is-selected){ opacity:.62; }
+.cards.has-selection .card:not(.is-selected):hover{ opacity:.9; }
+.card.is-selected{ border-color:rgba(233,235,239,.32); box-shadow:0 22px 48px -26px rgba(60,203,244,.45), 0 22px 48px -26px rgba(177,140,255,.45); }
+.card-head{ display:flex; align-items:flex-start; gap:12px; width:100%; min-height:44px; margin:0; padding:0; border:0; background:transparent; text-align:right; cursor:pointer; }
+.num{ width:36px; height:36px; display:grid; place-items:center; border-radius:10px; background:var(--surface-3); border:1px solid var(--line-2); font:600 14px var(--font-d); font-variant-numeric:tabular-nums; transition:background-color .2s, color .2s; }
+.card.is-selected .num{ background:var(--text); border-color:var(--text); color:var(--bg); }
+.head-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.date{ font-size:13px; color:var(--muted); }
+.q{ font-size:16.5px; line-height:1.75; font-weight:500; color:var(--text); text-wrap:pretty; }
+.chev{ margin-top:8px; color:var(--muted); transition:transform .25s; }
+.card.is-selected .chev{ transform:rotate(180deg); }
+
+.entry{ border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden; }
+.entry table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+.entry th{ padding:8px 14px; background:var(--surface-2); border-bottom:1px solid var(--line); text-align:right; font-size:13px; font-weight:600; }
+.entry th + th, .entry td + td{ border-right:1px solid var(--line); }
+.entry td{ padding:12px 14px; vertical-align:top; transition:background-color .25s, box-shadow .25s; }
+th.d{ color:var(--debit); width:38%; } th.c{ color:var(--credit); width:38%; } th.a{ color:var(--text-2); width:24%; }
+td.d{ background:var(--debit-soft); } td.c{ background:var(--credit-soft); }
+td.a{ vertical-align:middle; font:600 17px var(--font-d); }
+.acc{ display:block; font-weight:600; font-size:16px; line-height:1.5; }
+.tag{ display:inline-block; margin-top:6px; padding:1px 9px; border-radius:999px; font-size:12px; line-height:1.7; }
+td.d .tag, .c-d .tag{ color:var(--debit-ink); background:var(--debit-tint); }
+td.c .tag, .c-c .tag{ color:var(--credit-ink); background:var(--credit-tint); }
+.card.is-selected td.d{ background:var(--debit-tint); box-shadow:inset 0 0 0 1px var(--debit-line), inset 0 0 22px rgba(60,203,244,.12); }
+.card.is-selected td.c{ background:var(--credit-tint); box-shadow:inset 0 0 0 1px var(--credit-line), inset 0 0 22px rgba(177,140,255,.12); }
+
+.explain{ display:grid; gap:10px; }
+.why{ margin:0; display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start; font-size:14.5px; line-height:1.8; color:var(--text-2); }
+.why .k{ margin-top:2px; padding:2px 10px; border-radius:999px; font-size:12.5px; font-weight:600; white-space:nowrap; }
+.why.d .k{ color:var(--debit-ink); background:var(--debit-soft); border:1px solid rgba(60,203,244,.3); }
+.why.c .k{ color:var(--credit-ink); background:var(--credit-soft); border:1px solid rgba(177,140,255,.3); }
+
+.effect{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding-top:12px; border-top:1px dashed var(--line-2); font-size:14px; color:var(--text-2); }
+.effect .ek{ color:var(--text); font-weight:600; margin-left:4px; }
+.effect .eop{ color:var(--muted); }
+.effect .enote{ flex-basis:100%; margin:2px 0 0; color:var(--muted); font-size:13.5px; line-height:1.7; }
+
+/* master table */
+.tablewrap{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--surface); }
+.master{ width:100%; min-width:860px; border-collapse:collapse; table-layout:fixed; }
+.master th, .master td{ padding:12px 14px; text-align:right; vertical-align:top; border-bottom:1px solid var(--line); }
+.master thead th{ background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); white-space:nowrap; }
+.master thead th.d{ color:var(--debit); } .master thead th.c{ color:var(--credit); }
+.master .c-num{ width:68px; } .master .c-date{ width:96px; color:var(--muted); white-space:nowrap; font-size:14px; }
+.master .c-q{ line-height:1.75; font-weight:500; } .master .c-d{ width:180px; } .master .c-c{ width:210px; }
+.master .c-a{ width:120px; font:600 16px var(--font-d); }
+.master tr.row{ cursor:pointer; scroll-margin-top:170px; }
+.master tr.row td{ transition:background-color .15s, box-shadow .25s; }
+.master tr.row:hover td{ background:rgba(255,255,255,.02); }
+.master tr.row.has-x td{ border-bottom-color:transparent; }
+.master tr.is-selected td{ background:rgba(255,255,255,.035); }
+.master tr.row.is-selected td.c-d{ box-shadow:inset 0 0 0 1px var(--debit-line); background:var(--debit-soft); }
+.master tr.row.is-selected td.c-c{ box-shadow:inset 0 0 0 1px var(--credit-line); background:var(--credit-soft); }
+.master tr.xrow td{ padding-top:0; }
+.master tfoot td{ background:var(--surface-2); font-weight:600; border-bottom:0; }
+.rowbtn{ width:44px; height:44px; display:grid; place-items:center; border-radius:10px; border:1px solid var(--line-2); background:var(--surface-3); font:600 14px var(--font-d); cursor:pointer; transition:background-color .2s, color .2s; }
+.row.is-selected .rowbtn{ background:var(--text); border-color:var(--text); color:var(--bg); }
+
+.empty{ padding:40px 24px; text-align:center; border:1px dashed var(--line-2); border-radius:var(--r-lg); }
+.empty p{ margin:0; } .empty .t{ font-weight:600; font-size:16px; } .empty .s{ margin:6px 0 16px; color:var(--muted); }
+
+.foot{ margin-top:32px; padding-top:16px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); }
+.foot p{ margin:0; }
+
+@media (max-width:860px){
+  .cards{ grid-template-columns:minmax(0,1fr); }
+  .toolbar{ position:static; }
+  .card, .master tr.row{ scroll-margin-top:16px; }
+}
+@media (max-width:700px){
+  .wrap{ padding:22px 16px 44px; }
+  .eq-panel{ padding:18px 16px; }
+  .eq{ grid-template-columns:minmax(0,1fr); gap:6px; }
+  .op{ justify-self:center; font-size:20px; line-height:1; }
+  .card{ padding:14px; }
+  .entry th, .entry td{ padding:10px; }
+  .why{ grid-template-columns:minmax(0,1fr); gap:4px; }
+  .why .k{ justify-self:start; }
+  .chips{ flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px; }
+  .chip{ flex:none; }
+  .seg{ flex:1 1 auto; } .seg button{ flex:1; justify-content:center; }
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ transition:none !important; animation:none !important; scroll-behavior:auto !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <p class="meta">منشأة خالد لإصلاح وصيانة الحاسب الآلي، التطبيق الثالث</p>
+      <h1>قيود اليومية لشهر يناير 2012</h1>
+      <p class="lede">اضغط على أي عملية لتمييز طرفي القيد ورؤية أثرها على المعادلة المحاسبية، أو شغّل الشهر لمتابعة العمليات بالترتيب.</p>
+    </div>
+    <div class="who">
+      <span class="name">عبد المحسن مفرح السبيعي</span>
+      <span class="sec">الشعبة 131</span>
+    </div>
+  </header>
+
+  <section class="eq-panel" aria-labelledby="eq-title">
+    <div class="eq-head">
+      <h2 class="eq-title" id="eq-title">المعادلة المحاسبية<span class="when" id="eq-when"></span></h2>
+      <span class="balanced" id="balanced">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        الطرفان متوازنان
+      </span>
+    </div>
+    <div class="eq">
+      <div class="term">
+        <span class="lbl">الأصول</span>
+        <span class="val-row"><span class="val n" dir="ltr" id="vA">0</span><span class="unit">جنيه</span></span>
+        <span class="delta" id="dA"></span>
+      </div>
+      <span class="op" aria-hidden="true">=</span>
+      <div class="term">
+        <span class="lbl">الخصوم</span>
+        <span class="val-row"><span class="val n" dir="ltr" id="vL">0</span><span class="unit">جنيه</span></span>
+        <span class="delta" id="dL"></span>
+      </div>
+      <span class="op" aria-hidden="true">+</span>
+      <div class="term">
+        <span class="lbl">حقوق الملكية</span>
+        <span class="val-row"><span class="val n" dir="ltr" id="vE">0</span><span class="unit">جنيه</span></span>
+        <span class="delta" id="dE"></span>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="steps-scroll"><div class="steps" id="steps" role="group" aria-label="التنقل بين العمليات"></div></div>
+      <div class="tl-actions">
+        <button type="button" class="btn" id="play" aria-pressed="false"></button>
+        <button type="button" class="btn ghost" id="end">نهاية الشهر</button>
+      </div>
+    </div>
+    <div class="rules">
+      <p class="d"><span class="dot" aria-hidden="true"></span><span><b>يزيد في المدين:</b> الأصول، المصروفات، المسحوبات</span></p>
+      <p class="c"><span class="dot" aria-hidden="true"></span><span><b>يزيد في الدائن:</b> الخصوم، رأس المال، الإيرادات</span></p>
+      <p class="note">والنقص في أي حساب يُسجَّل في الجانب المعاكس لزيادته.</p>
+    </div>
+  </section>
+
+  <div class="toolbar" role="region" aria-label="أدوات البحث والعرض">
+    <div class="tb-row">
+      <div class="search">
+        <label for="q" class="sr-only">ابحث في العمليات</label>
+        <svg class="i-search" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="ابحث باسم حساب أو مبلغ أو كلمة">
+        <button type="button" class="clear" id="clear" aria-label="مسح البحث" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="seg" role="group" aria-label="طريقة العرض">
+        <button type="button" data-view="cards" aria-pressed="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>
+          بطاقات القيود
+        </button>
+        <button type="button" data-view="table" aria-pressed="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 15h18M9 9.5V20"/></svg>
+          الجدول المختصر
+        </button>
+      </div>
+      <button type="button" class="switch" id="explain" role="switch" aria-checked="true">
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+        الشرح المحاسبي
+      </button>
+    </div>
+    <div class="tb-row">
+      <div class="chips" id="chips" role="group" aria-label="تصفية حسب نوع الحساب"></div>
+      <p class="count" id="count" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <main class="results" id="results"></main>
+
+  <footer class="foot">
+    <p>كل قيد متوازن: المبلغ نفسه في الطرف المدين والطرف الدائن. اضغط Esc لإلغاء تحديد العملية.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var TX = [
+    { id: 1, date: '1 يناير', amount: 100000,
+      q: 'أودع صاحب المنشأة مبلغ 100,000 جنيه في الحساب الجاري كرأس مال للمشروع.',
+      d: { acc: 'البنك', type: 'asset', tag: 'أصل زاد', why: 'البنك من الأصول، وزاد رصيده بإيداع المالك، والأصل إذا زاد يُسجَّل في الجانب المدين.' },
+      c: { acc: 'رأس المال', type: 'capital', tag: 'حقوق ملكية زادت', why: 'رأس المال من حقوق الملكية، وزاد بما قدّمه المالك للمشروع، وحقوق الملكية إذا زادت تُسجَّل في الجانب الدائن.' },
+      eff: { A: 100000, L: 0, E: 100000 }, note: 'بداية المشروع: أصل جديد يقابله حق للمالك بالقيمة نفسها.' },
+    { id: 2, date: '10 يناير', amount: 40000,
+      q: 'قامت المنشأة بشراء أجهزة كمبيوتر بمبلغ 40,000 جنيه.',
+      d: { acc: 'الكمبيوترات', type: 'asset', tag: 'أصل زاد', why: 'الكمبيوترات أصل ثابت دخل المنشأة بالشراء، والأصل إذا زاد يُسجَّل في الجانب المدين.' },
+      c: { acc: 'الصندوق', type: 'asset', tag: 'أصل نقص', why: 'الصندوق من الأصول، ونقص رصيده بقيمة ثمن الأجهزة، والأصل إذا نقص يُسجَّل في الجانب الدائن.' },
+      eff: { A: 0, L: 0, E: 0 }, note: 'تبادل بين أصلين: الكمبيوترات زادت 40,000 والصندوق نقص بالمبلغ نفسه، فلم يتغير مجموع الأصول.' },
+    { id: 3, date: '15 يناير', amount: 10000,
+      q: 'اشترت المنشأة أثاثاً بمبلغ 10,000 جنيه نقداً.',
+      d: { acc: 'الأثاث', type: 'asset', tag: 'أصل زاد', why: 'الأثاث أصل ثابت زاد بالشراء، فيُسجَّل في الجانب المدين.' },
+      c: { acc: 'الصندوق', type: 'asset', tag: 'أصل نقص', why: 'الصندوق أصل نقص بدفع ثمن الأثاث نقداً، فيُسجَّل في الجانب الدائن.' },
+      eff: { A: 0, L: 0, E: 0 }, note: 'تبادل بين أصلين: الأثاث زاد 10,000 والصندوق نقص بالمبلغ نفسه.' },
+    { id: 4, date: '20 يناير', amount: 50000,
+      q: 'اشترت المنشأة سيارة بمبلغ 50,000 جنيه على الحساب.',
+      d: { acc: 'سيارات', type: 'asset', tag: 'أصل زاد', why: 'السيارات أصل ثابت زاد بالشراء، فتُسجَّل في الجانب المدين.' },
+      c: { acc: 'دائنون', type: 'liability', tag: 'التزام زاد', why: 'الشراء على الحساب أنشأ ديناً للمورّد فزادت الخصوم، والخصوم إذا زادت تُسجَّل في الجانب الدائن.' },
+      eff: { A: 50000, L: 50000, E: 0 }, note: 'لم يُدفع شيء الآن، فزادت الأصول والخصوم معاً.' },
+    { id: 5, date: '22 يناير', amount: 40000,
+      q: 'حصلت الشركة على قرض من أحد البنوك قيمته 40,000 جنيه.',
+      d: { acc: 'البنك', type: 'asset', tag: 'أصل زاد', why: 'البنك أصل زاد رصيده بقيمة القرض، فيُسجَّل في الجانب المدين.' },
+      c: { acc: 'القروض', type: 'liability', tag: 'التزام زاد', why: 'القرض التزام على المنشأة تجاه البنك، وزيادة الخصوم تُسجَّل في الجانب الدائن.' },
+      eff: { A: 40000, L: 40000, E: 0 }, note: 'النقدية زادت، لكن يقابلها دين واجب السداد.' },
+    { id: 6, date: '24 يناير', amount: 20000,
+      q: 'سددت المنشأة مبلغ 20,000 جنيه من حساب السيارة.',
+      d: { acc: 'دائنون', type: 'liability', tag: 'التزام نقص', why: 'سداد جزء من ثمن السيارة أنقص الدين المستحق للمورّد، والخصوم إذا نقصت تُسجَّل في الجانب المدين.' },
+      c: { acc: 'البنك', type: 'asset', tag: 'أصل نقص', why: 'البنك أصل نقص رصيده بالمبلغ المسدَّد، والأصل إذا نقص يُسجَّل في الجانب الدائن.' },
+      eff: { A: -20000, L: -20000, E: 0 }, note: 'سداد الالتزام أنقص الأصول والخصوم بالمبلغ نفسه.' },
+    { id: 7, date: '26 يناير', amount: 10000,
+      q: 'حصّلت المنشأة إيرادات خدمات للعملاء قدرها 10,000 جنيه.',
+      d: { acc: 'الصندوق', type: 'asset', tag: 'أصل زاد', why: 'الصندوق أصل زاد بالمبلغ المحصَّل من العملاء، فيُسجَّل في الجانب المدين.' },
+      c: { acc: 'إيرادات خدمات', type: 'revenue', tag: 'إيراد زاد', why: 'الإيرادات تزيد حقوق الملكية، لذلك تُسجَّل في الجانب الدائن.' },
+      eff: { A: 10000, L: 0, E: 10000 }, note: 'الإيراد المحصَّل يزيد النقدية وحقوق الملكية معاً.' },
+    { id: 8, date: '27 يناير', amount: 20000,
+      q: 'أدّت المنشأة خدمات للعملاء قيمتها 20,000 جنيه على أن يتم السداد بعد 3 أشهر.',
+      d: { acc: 'المدينون', type: 'asset', tag: 'أصل زاد', why: 'المدينون (العملاء) أصل زاد، لأن للمنشأة حقاً في تحصيل المبلغ بعد 3 أشهر.' },
+      c: { acc: 'إيرادات خدمات', type: 'revenue', tag: 'إيراد زاد', why: 'الإيراد يُثبت عند أداء الخدمة ولو تأخر التحصيل، ويُسجَّل في الجانب الدائن لأنه يزيد حقوق الملكية.' },
+      eff: { A: 20000, L: 0, E: 20000 }, note: 'الإيراد يُثبت عند أداء الخدمة حتى لو لم يُحصَّل بعد.' },
+    { id: 9, date: '28 يناير', amount: 1000,
+      q: 'دفعت المنشأة مصروفات إعلان قدرها 1,000 جنيه.',
+      d: { acc: 'مصروفات إعلان', type: 'expense', tag: 'مصروف زاد', why: 'مصروفات الإعلان تُنقص حقوق الملكية، والمصروفات تُسجَّل في الجانب المدين.' },
+      c: { acc: 'الصندوق', type: 'asset', tag: 'أصل نقص', why: 'الصندوق أصل نقص بدفع قيمة الإعلان، فيُسجَّل في الجانب الدائن.' },
+      eff: { A: -1000, L: 0, E: -1000 }, note: 'المصروف يُنقص الأصول وحقوق الملكية معاً.' },
+    { id: 10, date: '30 يناير', amount: 10000,
+      q: 'سحب صاحب المنشأة مبلغ 10,000 جنيه لإتمام حفل زواج ابنته.',
+      d: { acc: 'مسحوبات شخصية', type: 'drawings', tag: 'مسحوبات زادت', why: 'المسحوبات الشخصية تُنقص حقوق المالك فتُسجَّل في الجانب المدين، وهي ليست مصروفاً على المنشأة.' },
+      c: { acc: 'الصندوق', type: 'asset', tag: 'أصل نقص', why: 'الصندوق أصل نقص بالمبلغ الذي سحبه المالك، فيُسجَّل في الجانب الدائن.' },
+      eff: { A: -10000, L: 0, E: -10000 }, note: 'المسحوبات تُنقص حقوق المالك مباشرة ولا تدخل ضمن المصروفات.' },
+    { id: 11, date: '31 يناير', amount: 1000,
+      q: 'هناك مرتب مستحق لأحد العاملين قدره 1,000 جنيه ولم يُدفع حتى الآن.',
+      d: { acc: 'مصروفات رواتب', type: 'expense', tag: 'مصروف زاد', why: 'مصروف الراتب يخص شهر يناير فيُثبت فيه ولو لم يُدفع، ويُسجَّل في الجانب المدين لأنه يُنقص حقوق الملكية.' },
+      c: { acc: 'مصروفات رواتب مستحقة', type: 'liability', tag: 'التزام زاد', why: 'الراتب غير المدفوع التزام على المنشأة تجاه العامل، والخصوم إذا زادت تُسجَّل في الجانب الدائن.' },
+      eff: { A: 0, L: 1000, E: -1000 }, note: 'لم تخرج نقدية، لكن نشأ التزام ونقصت حقوق الملكية بالمبلغ نفسه.' }
+  ];
+
+  var FILTERS = [
+    ['all', 'الكل'], ['asset', 'الأصول'], ['liability', 'الخصوم'], ['capital', 'رأس المال'],
+    ['revenue', 'الإيرادات'], ['expense', 'المصروفات'], ['drawings', 'المسحوبات']
+  ];
+
+  var KEY = 'journal-dashboard:v1';
+  var state = { q: '', filter: 'all', view: 'cards', explain: true, selected: null, step: TX.length, playing: false };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) {
+      if (saved.view === 'cards' || saved.view === 'table') state.view = saved.view;
+      if (typeof saved.explain === 'boolean') state.explain = saved.explain;
+    }
+  } catch (e) { /* storage unavailable */ }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ view: state.view, explain: state.explain })); } catch (e) { /* ignore */ }
+  }
+
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function $(s) { return document.querySelector(s); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmt(n) { return Math.abs(n).toLocaleString('en-US'); }
+  function signed(n) { return n > 0 ? '+' + fmt(n) : n < 0 ? '\u2212' + fmt(n) : '0'; }
+  function num(n) { return '<span class="n" dir="ltr">' + fmt(n) + '</span>'; }
+  function delta(n) { return '<span class="n ' + (n > 0 ? 'pos' : n < 0 ? 'neg' : 'zero') + '" dir="ltr">' + signed(n) + '</span>'; }
+  function norm(s) {
+    return String(s)
+      .replace(/[\u0660-\u0669]/g, function (d) { return String(d.charCodeAt(0) - 0x0660); })
+      .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+      .replace(/[\u0623\u0625\u0622]/g, '\u0627')
+      .replace(/\u0629/g, '\u0647')
+      .replace(/\u0649/g, '\u064A')
+      .replace(/[,\u060C]/g, '')
+      .toLowerCase();
+  }
+  TX.forEach(function (t) {
+    t.hay = norm([t.q, t.date, t.d.acc, t.c.acc, t.d.tag, t.c.tag, t.amount].join(' '));
+  });
+
+  function matchesFilter(t, f) { return f === 'all' || t.d.type === f || t.c.type === f; }
+  function visible() {
+    var tokens = norm(state.q).split(/\s+/).filter(Boolean);
+    return TX.filter(function (t) {
+      return matchesFilter(t, state.filter) && tokens.every(function (k) { return t.hay.indexOf(k) !== -1; });
+    });
+  }
+  function totals(step) {
+    var s = { A: 0, L: 0, E: 0 };
+    TX.forEach(function (t) { if (t.id <= step) { s.A += t.eff.A; s.L += t.eff.L; s.E += t.eff.E; } });
+    return s;
+  }
+
+  /* ---------- equation ---------- */
+  var shown = { A: null, L: null, E: null };
+  function setVal(k, to) {
+    var el = $('#v' + k);
+    var from = shown[k];
+    shown[k] = to;
+    var paint = function (v) { el.textContent = (v < 0 ? '\u2212' : '') + fmt(v); };
+    if (from === null || reduceMotion || from === to) { paint(to); return; }
+    if (el._raf) cancelAnimationFrame(el._raf);
+    var start = performance.now(), dur = 450;
+    var tick = function (now) {
+      var p = Math.min(1, (now - start) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      paint(Math.round(from + (to - from) * e));
+      if (p < 1) el._raf = requestAnimationFrame(tick);
+    };
+    el._raf = requestAnimationFrame(tick);
+  }
+  function renderEquation() {
+    var t = TX[state.step - 1];
+    var s = totals(state.step);
+    setVal('A', s.A); setVal('L', s.L); setVal('E', s.E);
+    $('#eq-when').textContent = state.selected === null
+      ? 'في نهاية الشهر (بعد العمليات الـ 11)'
+      : 'بعد العملية ' + t.id + '، ' + t.date + ' 2012';
+    ['A', 'L', 'E'].forEach(function (k) {
+      $('#d' + k).innerHTML = 'صافي أثر العملية ' + t.id + ': ' + delta(t.eff[k]);
+    });
+    $('#balanced').hidden = s.A !== s.L + s.E;
+  }
+  function renderSteps() {
+    $('#steps').innerHTML = TX.map(function (t) {
+      var cls = t.id < state.step ? ' done' : t.id === state.step ? ' current' : '';
+      return '<button type="button" class="step' + cls + '" data-step="' + t.id + '" aria-label="العملية ' + t.id + '، ' + t.date + '"' +
+        (t.id === state.step ? ' aria-current="step"' : '') + '><span>' + t.id + '</span></button>';
+    }).join('');
+  }
+  var PLAY_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
+  var PAUSE_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  function renderPlay() {
+    var b = $('#play');
+    b.innerHTML = state.playing ? PAUSE_ICON + '<span>إيقاف</span>' : PLAY_ICON + '<span>تشغيل الشهر</span>';
+    b.setAttribute('aria-pressed', state.playing ? 'true' : 'false');
+  }
+
+  /* ---------- toolbar ---------- */
+  function renderToolbar() {
+    document.querySelectorAll('.seg [data-view]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-view') === state.view ? 'true' : 'false');
+    });
+    $('#explain').setAttribute('aria-checked', state.explain ? 'true' : 'false');
+    $('#clear').hidden = !state.q;
+    $('#chips').innerHTML = FILTERS.map(function (f) {
+      var n = TX.filter(function (t) { return matchesFilter(t, f[0]); }).length;
+      return '<button type="button" class="chip" data-filter="' + f[0] + '" aria-pressed="' + (state.filter === f[0]) + '">' +
+        f[1] + '<span class="c">' + n + '</span></button>';
+    }).join('');
+  }
+
+  /* ---------- results ---------- */
+  function whyHTML(t) {
+    return '<p class="why d"><span class="k">لماذا مدين؟</span><span>' + esc(t.d.why) + '</span></p>' +
+           '<p class="why c"><span class="k">لماذا دائن؟</span><span>' + esc(t.c.why) + '</span></p>';
+  }
+  function effectHTML(t) {
+    return '<div class="effect"><span class="ek">أثرها على المعادلة:</span>' +
+      '<span>الأصول ' + delta(t.eff.A) + '</span><span class="eop">=</span>' +
+      '<span>الخصوم ' + delta(t.eff.L) + '</span><span class="eop">+</span>' +
+      '<span>حقوق الملكية ' + delta(t.eff.E) + '</span>' +
+      (t.note ? '<p class="enote">' + esc(t.note) + '</p>' : '') + '</div>';
+  }
+  function cardHTML(t) {
+    var sel = state.selected === t.id;
+    var showX = state.explain || sel;
+    return '<article class="card' + (sel ? ' is-selected' : '') + '" data-id="' + t.id + '">' +
+      '<button type="button" class="card-head" aria-expanded="' + sel + '">' +
+        '<span class="num">' + t.id + '</span>' +
+        '<span class="head-body"><span class="date">' + t.date + ' 2012</span><span class="q">' + esc(t.q) + '</span></span>' +
+        '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>' +
+      '</button>' +
+      '<div class="entry"><table>' +
+        '<thead><tr><th class="d" scope="col">المدين</th><th class="c" scope="col">الدائن</th><th class="a" scope="col">المبلغ</th></tr></thead>' +
+        '<tbody><tr>' +
+          '<td class="d"><span class="acc">' + esc(t.d.acc) + '</span><span class="tag">' + esc(t.d.tag) + '</span></td>' +
+          '<td class="c"><span class="acc">' + esc(t.c.acc) + '</span><span class="tag">' + esc(t.c.tag) + '</span></td>' +
+          '<td class="a">' + num(t.amount) + '</td>' +
+        '</tr></tbody>' +
+      '</table></div>' +
+      (showX ? '<div class="explain">' + whyHTML(t) + '</div>' : '') +
+      (sel ? effectHTML(t) : '') +
+    '</article>';
+  }
+  function tableHTML(list) {
+    var total = 0;
+    var rows = list.map(function (t) {
+      total += t.amount;
+      var sel = state.selected === t.id;
+      var showX = state.explain || sel;
+      return '<tr class="row' + (sel ? ' is-selected' : '') + (showX ? ' has-x' : '') + '" data-id="' + t.id + '">' +
+          '<td class="c-num"><button type="button" class="rowbtn" aria-pressed="' + sel + '" aria-label="تحديد العملية ' + t.id + '">' + t.id + '</button></td>' +
+          '<td class="c-date">' + t.date + '</td>' +
+          '<td class="c-q">' + esc(t.q) + '</td>' +
+          '<td class="c-d"><span class="acc">' + esc(t.d.acc) + '</span><span class="tag">' + esc(t.d.tag) + '</span></td>' +
+          '<td class="c-c"><span class="acc">' + esc(t.c.acc) + '</span><span class="tag">' + esc(t.c.tag) + '</span></td>' +
+          '<td class="c-a">' + num(t.amount) + '</td>' +
+        '</tr>' +
+        (showX ? '<tr class="xrow' + (sel ? ' is-selected' : '') + '" data-id="' + t.id + '"><td></td><td colspan="5"><div class="explain">' + whyHTML(t) + (sel ? effectHTML(t) : '') + '</div></td></tr>' : '');
+    }).join('');
+    return '<div class="tablewrap"><table class="master">' +
+      '<colgroup><col style="width:68px"><col style="width:96px"><col><col style="width:180px"><col style="width:210px"><col style="width:120px"></colgroup>' +
+      '<thead><tr><th scope="col">#</th><th scope="col">التاريخ</th><th scope="col">العملية</th><th scope="col" class="d">المدين</th><th scope="col" class="c">الدائن</th><th scope="col">المبلغ</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+      '<tfoot><tr><td colspan="5">إجمالي القيود المعروضة (مجموع المدين = مجموع الدائن)</td><td class="c-a">' + num(total) + '</td></tr></tfoot>' +
+      '</table></div>';
+  }
+  function renderResults() {
+    var list = visible();
+    $('#count').textContent = 'المعروض: ' + list.length + ' من ' + TX.length;
+    var root = $('#results');
+    if (!list.length) {
+      root.innerHTML = '<div class="empty"><p class="t">لا توجد عمليات تطابق البحث.</p>' +
+        '<p class="s">جرّب كلمة أخرى، أو اعرض كل العمليات.</p>' +
+        '<button type="button" class="btn" data-action="reset">عرض كل العمليات</button></div>';
+      return;
+    }
+    var selVisible = list.some(function (t) { return t.id === state.selected; });
+    root.innerHTML = state.view === 'cards'
+      ? '<div class="cards' + (selVisible ? ' has-selection' : '') + '">' + list.map(cardHTML).join('') + '</div>'
+      : tableHTML(list);
+  }
+  function renderAll() { renderToolbar(); renderResults(); renderEquation(); renderSteps(); renderPlay(); }
+
+  /* ---------- actions ---------- */
+  var timer = null;
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; }
+    if (state.playing) { state.playing = false; renderPlay(); }
+  }
+  function scrollToItem(id) {
+    var el = document.querySelector('#results [data-id="' + id + '"]');
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+  function goTo(id) {
+    state.selected = id; state.step = id;
+    renderResults(); renderEquation(); renderSteps();
+  }
+  function clearSelection() {
+    state.selected = null; state.step = TX.length;
+    renderResults(); renderEquation(); renderSteps();
+  }
+  function toggleSelect(id, refocus) {
+    stopPlay();
+    if (state.selected === id) clearSelection(); else goTo(id);
+    if (refocus) {
+      var b = document.querySelector('#results [data-id="' + id + '"] .card-head, #results tr.row[data-id="' + id + '"] .rowbtn');
+      if (b) b.focus({ preventScroll: true });
+    }
+  }
+  function play() {
+    if (state.playing) { stopPlay(); return; }
+    state.playing = true; renderPlay();
+    var i = (state.selected !== null && state.selected < TX.length) ? state.selected : 0;
+    var next = function () {
+      i += 1;
+      goTo(i); scrollToItem(i);
+      if (i >= TX.length) stopPlay();
+    };
+    next();
+    if (state.playing) timer = setInterval(next, 1400);
+  }
+
+  $('#results').addEventListener('click', function (e) {
+    if (e.target.closest('[data-action="reset"]')) {
+      state.q = ''; state.filter = 'all'; $('#q').value = '';
+      renderToolbar(); renderResults();
+      return;
+    }
+    var item = e.target.closest('[data-id]');
+    if (!item) return;
+    var sel = window.getSelection ? String(window.getSelection()) : '';
+    if (sel.length > 0 && !e.target.closest('button')) return;
+    toggleSelect(Number(item.getAttribute('data-id')), !!e.target.closest('button'));
+  });
+  $('#steps').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-step]');
+    if (!b) return;
+    stopPlay();
+    var id = Number(b.getAttribute('data-step'));
+    goTo(id); scrollToItem(id);
+    var nb = document.querySelector('#steps [data-step="' + id + '"]');
+    if (nb) nb.focus({ preventScroll: true });
+  });
+  $('#play').addEventListener('click', play);
+  $('#end').addEventListener('click', function () { stopPlay(); clearSelection(); });
+  $('#q').addEventListener('input', function (e) {
+    state.q = e.target.value;
+    $('#clear').hidden = !state.q;
+    renderResults();
+  });
+  $('#clear').addEventListener('click', function () {
+    state.q = ''; $('#q').value = ''; $('#clear').hidden = true;
+    renderResults(); $('#q').focus();
+  });
+  document.querySelector('.seg').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]');
+    if (!b) return;
+    state.view = b.getAttribute('data-view'); save();
+    renderToolbar(); renderResults();
+  });
+  $('#explain').addEventListener('click', function () {
+    state.explain = !state.explain; save();
+    renderToolbar(); renderResults();
+  });
+  $('#chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-filter]');
+    if (!b) return;
+    state.filter = b.getAttribute('data-filter');
+    renderToolbar(); renderResults();
+    var nb = document.querySelector('#chips [data-filter="' + state.filter + '"]');
+    if (nb) nb.focus({ preventScroll: true });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && state.selected !== null) { stopPlay(); clearSelection(); }
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
